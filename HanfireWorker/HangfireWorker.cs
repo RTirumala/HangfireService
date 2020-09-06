@@ -6,19 +6,36 @@ using HelperServices;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Serilog.Core;
+using Serilog.Extensions.Autofac.DependencyInjection;
+using Serilog;
 
 namespace HanfireWorker
 {
     public class HangfireWorker : BackgroundService
     {
         private readonly INotificationJobService _notificationJobService;
+        private readonly ILogger<HangfireWorker> _logger;
         private readonly IConfiguration _configuration;
-        private BackgroundJobServer _server;
-        public HangfireWorker(IConfiguration configuration, INotificationJobService notificationJobService)
+        //private BackgroundJobServer _server;
+        public HangfireWorker(IConfiguration configuration, INotificationJobService notificationJobService, ILogger<HangfireWorker> logger)
         {
             _configuration = configuration;
             _notificationJobService = notificationJobService;
+            _logger = logger;
+
             var builder = new ContainerBuilder();
+
+            var config = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .Build();
+
+            var loggerConfig = new LoggerConfiguration()
+                .ReadFrom.Configuration(config);
+
+
+            builder.RegisterSerilog(loggerConfig); //(@"C:\Logs\autofac");
             builder.RegisterType<EmailService>().As<IEmailService>();
             builder.RegisterType<NotificationJobService>();
             GlobalConfiguration.Configuration.UseAutofacActivator(builder.Build(), false);
@@ -50,7 +67,7 @@ namespace HanfireWorker
 
         public override Task StopAsync(CancellationToken cancellationToken)
         {
-            //_logger.LogInformation("Hangfire Job stopping...");
+            _logger.LogInformation("Hangfire Job stopping...");
             //_server.Dispose();
             return base.StopAsync(cancellationToken);
         }

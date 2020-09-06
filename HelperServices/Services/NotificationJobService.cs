@@ -1,21 +1,22 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 
 namespace HelperServices
 {
     public class NotificationJobService : INotificationJobService
     {
         private readonly IEmailService _emailService;
-        //private readonly ILogger<NotificationJobService> _logger;
+        private readonly ILogger _logger;
 
-        public NotificationJobService(IEmailService emailService)
+        public NotificationJobService(IEmailService emailService, ILogger<NotificationJobService> logger)
         {
             _emailService = emailService;
-            //_logger = logger;
+            _logger = logger;
         }
         public void NotificationEmails(string user, string time)
         {
             Console.WriteLine("Notify Users....");
-            //_logger.LogInformation("Sending Notification Emails...");
+            _logger.LogInformation("Sending Notification Emails...");
             _emailService.sendEmail();
         }
     }

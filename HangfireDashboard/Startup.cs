@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using HelperServices.IoC;
+using Serilog;
 
 namespace HangfireDashboard
 {
@@ -42,7 +43,7 @@ namespace HangfireDashboard
             }
 
             app.UseHttpsRedirection();
-
+            app.UseSerilogRequestLogging();
             app.UseRouting();
             app.UseAuthorization();
 
