@@ -10,6 +10,9 @@ using Microsoft.Extensions.Logging;
 using Serilog.Core;
 using Serilog.Extensions.Autofac.DependencyInjection;
 using Serilog;
+using System.Net.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Autofac.Extensions.DependencyInjection;
 
 namespace HanfireWorker
 {
@@ -27,18 +30,26 @@ namespace HanfireWorker
 
             var builder = new ContainerBuilder();
 
+            ServiceCollection serviceCollection = new ServiceCollection();
+            serviceCollection.AddHttpClient();
+            serviceCollection.BuildServiceProvider();
+            builder.Populate(serviceCollection);
             var config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
                 .Build();
 
             var loggerConfig = new LoggerConfiguration()
                 .ReadFrom.Configuration(config);
-
-
             builder.RegisterSerilog(loggerConfig); //(@"C:\Logs\autofac");
+            //builder.RegisterType<IHttpClientFactory>();
             builder.RegisterType<EmailService>().As<IEmailService>();
+            builder.RegisterType<HangfireJobService>();
             builder.RegisterType<NotificationJobService>();
-            GlobalConfiguration.Configuration.UseAutofacActivator(builder.Build(), false);
+            
+            var container = builder.Build();
+            //var factory = container.Resolve<IHttpClientFactory>();
+
+            GlobalConfiguration.Configuration.UseAutofacActivator(container, false);
             GlobalConfiguration.Configuration.UseSqlServerStorage(_configuration.GetConnectionString("Hangfire"));
         }
 
@@ -58,7 +69,6 @@ namespace HanfireWorker
             using (new BackgroundJobServer())
             {
                 Console.WriteLine("Background server started...");
-                _notificationJobService.NotificationEmails("test", "test2");
                 Console.ReadLine();
             }
             return Task.CompletedTask;

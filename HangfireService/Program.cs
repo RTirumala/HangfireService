@@ -31,6 +31,7 @@ namespace HangfireService
                 .UseWindowsService()
                 .ConfigureServices((hostContext, services) =>
                 {
+                    services.AddHttpClient();
                     services.RegisterHelperServices();
                     services.AddHostedService<HangfireWorker>();
                 });

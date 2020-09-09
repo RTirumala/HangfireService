@@ -28,7 +28,7 @@ namespace HangfireDashboard.Controllers
             _notificationJobService = notificationJobService;
         }
 
-        [HttpGet]
+        [HttpGet("[action]")]
         public IEnumerable<WeatherForecast> Get()
         {
 
@@ -41,6 +41,13 @@ namespace HangfireDashboard.Controllers
                 Summary = Summaries[rng.Next(Summaries.Length)]
             })
             .ToArray();
+        }
+
+        [HttpGet("[action]")]
+        public string QueueHangfireService()
+        {
+            _backgroundJobClient.Enqueue<HangfireJobService>((x) => x.ExecuteHangfireJob(@"http://njvdwebfarm1:8001/RPSGroup/GetGroups"));
+           return "QueueHangfireService completed";
         }
 
         public void ThisIsHangfireMethod()
